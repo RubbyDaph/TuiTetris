@@ -40,8 +40,6 @@ void GameManager::Tick()
         if(!board->Spawn(this->GenerateNextFigure()))
         {
             gameState = GameState::GameOver;
-            std::cout << "WHAT WHAT WHAT\n";
-            std::cout << board->getYep(); 
         }
     }
 }
