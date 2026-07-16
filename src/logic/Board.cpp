@@ -1,9 +1,9 @@
 #include "Board.h"
 
 
-BoardClass::BoardClass()
+BoardClass::BoardClass(FigureType firstFigure)
 {
-    this->Spawn(FigureType::I);
+    this->Spawn(firstFigure);
 }
 
 bool BoardClass::IsActiveTetrominoCell(int x, int y) const
@@ -78,12 +78,7 @@ bool BoardClass::Spawn(FigureType type)
 {
     const int centerX = width / 2 - 2;
     
-    Tetromino candidate = activeTetromino;
-
-    candidate.type = type;
-    candidate.position.x = centerX;
-    candidate.position.y = 0;
-    candidate.direction = TurnDirection::Up;
+    Tetromino candidate{type, TurnDirection::Up, {centerX, 0}};
 
     if(CanPlace(candidate))
     {
@@ -157,10 +152,7 @@ BoardStepResult BoardClass::TryMoveDown()
     else
     {
         this->LockActiveTetromino();
-        if(!this->Spawn(FigureType::I))
-        {
-            return BoardStepResult{0, StepResult::GameOver};
-        }
-        return BoardStepResult{this->ClearLines(), StepResult::Locked};
+        int clearedLines = this->ClearLines();
+        return BoardStepResult{clearedLines, StepResult::Locked};
     }
 }

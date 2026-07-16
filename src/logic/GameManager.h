@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Board.h"
+#include <random>
+#include <iostream>
 
 enum class GameState
 {
@@ -10,13 +12,24 @@ enum class GameState
     Quit
 };
 
+enum class ScoreValue
+{
+    PlacedBlock = 50,
+    ClearedLine = 100
+};
+
 class GameManager
 {
-    BoardClass board;
+    BoardClass* board;
 public:
     GameManager();
-    ~GameManager() = default;
-
+    ~GameManager();
+    
     std::string GetFrame() const;
-    std::string MakeStep();
+    void Tick();
+private:
+    FigureType GenerateNextFigure() const;
+    GameState gameState = GameState::Running;
+    unsigned int score;
+    unsigned int lineCount;
 };

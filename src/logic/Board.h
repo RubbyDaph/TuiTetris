@@ -5,8 +5,7 @@
 enum class StepResult
 {
     Moved,
-    Locked,
-    GameOver
+    Locked
 };
 
 struct BoardStepResult
@@ -19,12 +18,13 @@ struct BoardStepResult
 class BoardClass
 {
 public:
-    BoardClass();
+    BoardClass(FigureType firstFigure);
     ~BoardClass() = default;
 
     std::string Render() const;
     BoardStepResult TryMoveDown();
-    
+    bool Spawn(FigureType type);
+    int getYep() {return (int)activeTetromino.type;}
 private:
     static constexpr int height = 20;
     static constexpr int width = 10;
@@ -33,7 +33,6 @@ private:
     int field[height][width]{};
     bool IsActiveTetrominoCell(int x, int y ) const;
     bool CanPlace(const Tetromino& candidate) const;
-    bool Spawn(FigureType type);
     void LockActiveTetromino();
     int ClearLines();
 };

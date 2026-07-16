@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <cstddef>
 #include <string>
 
 enum class FigureType
@@ -35,9 +34,9 @@ using FigureRotations = std::array<Shape, 4>;
 
 struct Tetromino
 {
-    FigureType type{FigureType::T};
-    TurnDirection direction{TurnDirection::Up};
-    Point position{0, 0};
+    FigureType type;
+    TurnDirection direction;
+    Point position;
 };
 
 const Shape& GetShape(FigureType type, TurnDirection direction);

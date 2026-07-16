@@ -4,8 +4,11 @@ int main()
 {
     GameManager manager;
     
-    std::cout << manager.GetFrame();
-    std::cout << manager.MakeStep();
-    std::cout << manager.GetFrame();
+    for(int i = 0; i < 23; i++)
+    {
+        std::cout << manager.GetFrame();
+        manager.Tick();
+    }
+
     return 0;
 }

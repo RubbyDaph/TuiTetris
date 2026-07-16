@@ -2,23 +2,46 @@
 
 GameManager::GameManager()
 {
-    
+   board = new BoardClass(this->GenerateNextFigure());   
+}
+
+GameManager::~GameManager()
+{
+    delete board;
 }
 
 std::string GameManager::GetFrame()  const
 {
-    return board.Render();
+    return board->Render();
 }
 
-std::string GameManager::MakeStep() 
+FigureType GameManager::GenerateNextFigure() const
 {
-    BoardStepResult boardStepResult = board.TryMoveDown();
+    std::random_device device;
 
-    switch(boardStepResult.stepResult)
+    std::mt19937 gen(device());
+
+    std::uniform_int_distribution<int> distrib(0, 6);
+
+    return (FigureType)distrib(gen);
+}
+
+void GameManager::Tick() 
+{
+    if(gameState != GameState::Running) return;
+
+    BoardStepResult boardStepResult = board->TryMoveDown();
+
+    if(boardStepResult.stepResult == StepResult::Locked)
     {
-        case StepResult::Moved: return "Yep, it moved\n";
-        case StepResult::GameOver: return "Something is not good\n";
-        case StepResult::Locked: return "even more questions\n";
+        lineCount += boardStepResult.clearedLines;
+        score += boardStepResult.clearedLines * (int)ScoreValue::ClearedLine;
+        score += (int)ScoreValue::PlacedBlock;
+        if(!board->Spawn(this->GenerateNextFigure()))
+        {
+            gameState = GameState::GameOver;
+            std::cout << "WHAT WHAT WHAT\n";
+            std::cout << board->getYep(); 
+        }
     }
-    return "WHAT";
 }
