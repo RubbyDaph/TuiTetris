@@ -18,4 +18,5 @@ public:
     ~GameManager() = default;
 
     std::string GetFrame() const;
+    std::string MakeStep();
 };
