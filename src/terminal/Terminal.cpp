@@ -2,6 +2,7 @@
 #include <cerrno>
 #include <unistd.h>
 #include <system_error>
+#include <stdexcept>
 
 
 #define ALT_SCREEN          "\x1b[?1049h" 
@@ -15,9 +16,20 @@
 
 Terminal::Terminal()
 {
-    isatty(STDIN_FILENO);
+    if(isatty(STDIN_FILENO) != 1)
+    {
+        throw std::runtime_error("Standart input is not connected to a terminal");
+    }
 
-    tcgetattr(STDIN_FILENO, &originalSettings); // getting original settings from terminal
+    if(isatty(STDOUT_FILENO) != 1)
+    {
+        throw std::runtime_error("Standart output is not connected to a terminal");
+    }
+
+    if(tcgetattr(STDIN_FILENO, &originalSettings) == -1) // getting original settings from terminal
+    {
+        throw std::system_error(errno, std::generic_category(), "Failed to read terminal settings");
+    }
 
     termios gameSettings = originalSettings;
 
@@ -29,7 +41,12 @@ Terminal::Terminal()
     gameSettings.c_cc[VMIN] = 0;
     gameSettings.c_cc[VTIME] = 0;
     
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &gameSettings); // setting up our new settings
+    if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &gameSettings) == -1) // setting up our new settings
+    {
+        throw std::system_error(errno, std::generic_category(), "Failed to change terminal settings");
+    }
+
+    settingsChanged = true;
     
     std::string setup;
     
@@ -37,20 +54,23 @@ Terminal::Terminal()
     setup += HIDE_CURSOR; // hide cursor
     setup += CLEAR_ALL_SCREEN; // clear entire screen
     setup += MOVE_CURSOR_TO_00; // move cursor to 0 0 
+    
+    alternativeScreenEnabled = true;
 
-    WriteAll(setup);
+    try
+    {
+        WriteAll(setup);
+    }
+    catch(...)
+    {
+        Restore();
+        throw;
+    }
 }
 
 Terminal::~Terminal() noexcept
 {
-    std::string reset;
-    reset += CLEAR_STYLE; // clear colors and style
-    reset += SHOW_CURSOR; // show cursor
-    reset += CLOSE_ALT_SCREEN; // turn off alternative screen
-    WriteAll(reset);
-
-    // setting up original settings
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalSettings);
+    Restore();
 }
 
 void Terminal::Present(std::string_view frame)
@@ -65,7 +85,7 @@ void Terminal::Present(std::string_view frame)
 
 void Terminal::WriteAll(std::string_view data)
 {
-    std:;std::size_t totalWritten = 0;
+    std::size_t totalWritten = 0;
 
     while(totalWritten < data.size())
     {
@@ -75,7 +95,47 @@ void Terminal::WriteAll(std::string_view data)
             totalWritten += static_cast<std::size_t>(written);
             continue;
         }
+
+        if(written == -1 && errno == EINTR)
+        {
+            continue;
+        }
+
+        if(written == 0)
+        {
+            throw std::runtime_error("Terminal write returned zero");
+        }
         
         throw std::system_error(errno, std::generic_category(), "Failed to write to terminal");
+    }
+}
+
+void Terminal::Restore() noexcept
+{
+    if(alternativeScreenEnabled)
+    {
+
+        std::string reset;
+        reset += CLEAR_STYLE;
+        reset += SHOW_CURSOR;
+        reset += CLOSE_ALT_SCREEN;
+
+       try
+       {
+           WriteAll(reset);
+       }
+       catch(...)
+       {
+
+       }
+
+       alternativeScreenEnabled = false;
+    }
+
+    if(settingsChanged)
+    {
+        tcsetattr(STDIN_FILENO, TCSANOW, &originalSettings);
+
+        settingsChanged = false;
     }
 }
