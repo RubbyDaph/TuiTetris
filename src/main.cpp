@@ -1,12 +1,13 @@
 #include "logic/GameManager.h"
-#include <iostream>
+#include "terminal/Terminal.h"
 int main()
 {
+    Terminal terminal;
     GameManager manager;
     
     for(int i = 0; i < 23; i++)
     {
-        std::cout << manager.GetFrame();
+        terminal.Present(manager.GetFrame());
         manager.Tick();
     }
 
