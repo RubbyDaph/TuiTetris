@@ -2,6 +2,7 @@
 
 #include "Board.h"
 #include <random>
+#include <iostream>
 
 enum class GameState
 {
@@ -19,7 +20,6 @@ enum class ScoreValue
 
 class GameManager
 {
-    BoardClass* board;
 public:
     GameManager();
     ~GameManager();
@@ -27,8 +27,14 @@ public:
     std::string GetFrame() const;
     void Tick();
 private:
-    FigureType GenerateNextFigure() const;
+    std::mt19937 generator;
+    std::uniform_int_distribution<int> figureDistribution;
+
+    BoardClass board;
+
+    FigureType GenerateNextFigure();
+
     GameState gameState = GameState::Running;
-    unsigned int score;
-    unsigned int lineCount;
+    unsigned int score{0};
+    unsigned int lineCount{0};
 };

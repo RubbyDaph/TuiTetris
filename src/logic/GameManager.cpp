@@ -1,43 +1,41 @@
 #include "GameManager.h"
 
-GameManager::GameManager()
+GameManager::GameManager() : generator(std::random_device{}()), figureDistribution(0, 6)
 {
-   board = new BoardClass(this->GenerateNextFigure());   
+    if(!board.Reset(GenerateNextFigure()))
+    {
+        throw std::runtime_error("Figure couldn't spawn");
+    }
 }
 
 GameManager::~GameManager()
 {
-    delete board;
 }
 
 std::string GameManager::GetFrame()  const
 {
-    return board->Render();
+    return board.Render();
 }
 
-FigureType GameManager::GenerateNextFigure() const
+FigureType GameManager::GenerateNextFigure()
 {
-    std::random_device device;
+    const int value = figureDistribution(generator);
 
-    std::mt19937 gen(device());
-
-    std::uniform_int_distribution<int> distrib(0, 6);
-
-    return (FigureType)distrib(gen);
+    return static_cast<FigureType>(value);
 }
 
 void GameManager::Tick() 
 {
     if(gameState != GameState::Running) return;
 
-    BoardStepResult boardStepResult = board->TryMoveDown();
+    BoardStepResult boardStepResult = board.TryMoveDown();
 
     if(boardStepResult.stepResult == StepResult::Locked)
     {
         lineCount += boardStepResult.clearedLines;
         score += boardStepResult.clearedLines * (int)ScoreValue::ClearedLine;
         score += (int)ScoreValue::PlacedBlock;
-        if(!board->Spawn(this->GenerateNextFigure()))
+        if(!board.Spawn(this->GenerateNextFigure()))
         {
             gameState = GameState::GameOver;
         }
