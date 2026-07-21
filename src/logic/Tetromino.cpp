@@ -8,7 +8,6 @@ namespace
 
     const ColorCatalog colorCatalog
     {
-        // TODO: change colors for each figure
         // T
         "\x1b[48;2;255;140;0m  \x1b[0m", // orange
         // S

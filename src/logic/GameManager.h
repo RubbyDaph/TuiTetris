@@ -1,8 +1,15 @@
 #pragma once
 
 #include "Board.h"
-#include <random>
+#include "GameOverMenu.h"
+#include "PausedMenu.h"
 #include <iostream>
+#include <random>
+#include <chrono>
+#include <thread>
+
+class Terminal;
+class InputHandler;
 
 enum class GameState
 {
@@ -24,8 +31,11 @@ public:
     GameManager();
     ~GameManager();
     
-    std::string GetFrame() const;
+    std::string GetGameFrame() const;
+    std::string GetPausedFrame() const;
+    std::string GetGameOverFrame() const;
     void Tick();
+    void Run(Terminal& terminal, InputHandler& input);
 private:
     std::mt19937 generator;
     std::uniform_int_distribution<int> figureDistribution;

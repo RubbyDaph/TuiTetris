@@ -1,20 +1,24 @@
 #include "logic/GameManager.h"
 #include "terminal/Terminal.h"
+#include "terminal/InputHandler.h"
 
-#include <chrono>
-#include <thread>
 
 int main()
 {
-    Terminal terminal;
-    GameManager manager;
     
-    for(int i = 0; i < 23; i++)
+    try
     {
-        terminal.Present(manager.GetFrame());
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        manager.Tick();
-    }
+    Terminal terminal;
+    InputHandler input;
+    GameManager manager;
 
+    terminal.Present(manager.GetFrame());
+    //        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    manager.Tick();
+    }
+    catch(const std::exception& error)
+    {
+        
+    }
     return 0;
 }
