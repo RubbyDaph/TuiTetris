@@ -6,7 +6,6 @@
 #include <iostream>
 #include <random>
 #include <chrono>
-#include <thread>
 
 class Terminal;
 class InputHandler;
@@ -41,10 +40,12 @@ private:
     std::uniform_int_distribution<int> figureDistribution;
 
     BoardClass board;
+    PausedMenu pauseMenu;
 
     FigureType GenerateNextFigure();
+    void Restart();
 
-    GameState gameState = GameState::Running;
+    GameState gameState = GameState::Paused;
     unsigned int score{0};
     unsigned int lineCount{0};
 };

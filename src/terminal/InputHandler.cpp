@@ -29,6 +29,8 @@ std::optional<Key> InputHandler::GetKey(int timeoutMs)
 
     if(byte == 'd' || byte == 'D') return Key::D;
 
+    if(byte == '\n' || byte == '\r') return Key::Enter;
+
     if(byte != '\x1b') return Key::Other;
 
     if(!WaitForInput(5)) return Key::Escape;
@@ -47,6 +49,7 @@ std::optional<Key> InputHandler::GetKey(int timeoutMs)
 
     switch(thirdByte)
     {
+        case 'A': return Key::ArrowUp;
         case 'B': return Key::ArrowDown;
         case 'C': return Key::ArrowRight;
         case 'D': return Key::ArrowLeft;

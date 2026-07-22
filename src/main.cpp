@@ -12,9 +12,7 @@ int main()
     InputHandler input;
     GameManager manager;
 
-    terminal.Present(manager.GetFrame());
-    //        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    manager.Tick();
+    manager.Run(terminal, input);
     }
     catch(const std::exception& error)
     {

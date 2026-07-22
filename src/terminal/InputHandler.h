@@ -10,11 +10,13 @@ enum class Key
     ArrowLeft,
     ArrowRight,
     ArrowDown,
+    ArrowUp,
     A,
     D,
     Escape,
     P,
     Q,
+    Enter,
     Other
 };
 

@@ -21,7 +21,7 @@ std::string GameManager::GetGameFrame()  const
 
 std::string GameManager::GetPausedFrame() const
 {
-
+    return pauseMenu.Render();
 }
 
 std::string GameManager::GetGameOverFrame() const
@@ -52,6 +52,14 @@ void GameManager::Tick()
             gameState = GameState::GameOver;
         }
     }
+}
+
+void GameManager::Restart()
+{
+    score = 0;
+    lineCount = 0;
+    board.Reset(this->GenerateNextFigure());
+    gameState = GameState::Running;
 }
 
 void GameManager::Run(Terminal& terminal, InputHandler& input)
@@ -85,10 +93,12 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                         case Key::A:
                             {
                                 board.TryRotateCounterClockwise();
+                                break;
                             }
                         case Key::D:
                             {
                                 board.TryRotateClockwise();
+                                break;
                             }
                         case Key::Escape:
                             {
@@ -109,16 +119,64 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                             {
                                 break;
                             }
+                        default: break;
                     }
                 }
-
+                // TODO: add timer
                 this->Tick();
                 terminal.Present(this->GetGameFrame());
                 break;
             }
             case GameState::Paused:
             {
-                // TODO: make pause menu and input
+                auto key = input.GetKey(16);
+                if(key)
+                {
+                    switch(*key)
+                    {
+                        case Key::ArrowDown:
+                        {
+                            pauseMenu.GoNextOption();
+                            break;
+                        }
+                        case Key::ArrowUp:
+                        {
+                            pauseMenu.GoPrevOption();
+                            break;
+                        }
+                        case Key::Enter:
+                        {
+                            MenuOption option = pauseMenu.ConfirmOption();
+                            switch(option)
+                            {
+                                case MenuOption::Resume:
+                                {
+                                    gameState = GameState::Running;
+                                    break;
+                                }
+                                case MenuOption::Restart:
+                                {
+                                    break;
+                                }
+                                case MenuOption::Quit:
+                                {
+                                    gameState = GameState::Quit;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case Key::Escape:
+                        {
+                            gameState = GameState::Running;
+                            break;
+                        }
+                        default: break;
+                        case Key::Other: break;
+                    }
+                }
+                terminal.Present(this->GetPausedFrame());
+                break;
             }
             case GameState::GameOver:
             {
