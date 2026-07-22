@@ -64,129 +64,137 @@ void GameManager::Restart()
 
 void GameManager::Run(Terminal& terminal, InputHandler& input)
 {
-   while(gameState != GameState::Quit)
-   {
-       switch(gameState)
-       {
+    auto nextTick = std::chrono::steady_clock::now() + std::chrono::milliseconds(500); 
+    while(gameState != GameState::Quit)
+    {
+        switch(gameState)
+        {
             case GameState::Running:
-            {
-                auto key = input.GetKey(16);
-                if(key)
                 {
-                    switch(*key)
+                    auto key = input.GetKey(16);
+                    if(key)
                     {
-                        case Key::ArrowLeft:
-                            {
-                                board.TryMoveLeft();
-                                break;
-                            }
-                        case Key::ArrowRight:
-                            {
-                                board.TryMoveRight();
-                                break;
-                            }
-                        case Key::ArrowDown:
-                            {
-                                // TODO: add soft drop mechanic
-                                break;
-                            }
-                        case Key::A:
-                            {
-                                board.TryRotateCounterClockwise();
-                                break;
-                            }
-                        case Key::D:
-                            {
-                                board.TryRotateClockwise();
-                                break;
-                            }
-                        case Key::Escape:
-                            {
-                                gameState = GameState::Paused;
-                                break;
-                            }
-                        case Key::P:
-                            {
-                                gameState = GameState::Paused;
-                                break;
-                            }
-                        case Key::Q:
-                            {
-                                gameState = GameState::Quit;
-                                break;
-                            }
-                        case Key::Other:
-                            {
-                                break;
-                            }
-                        default: break;
-                    }
-                }
-                // TODO: add timer
-                this->Tick();
-                terminal.Present(this->GetGameFrame());
-                break;
-            }
-            case GameState::Paused:
-            {
-                auto key = input.GetKey(16);
-                if(key)
-                {
-                    switch(*key)
-                    {
-                        case Key::ArrowDown:
+                        switch(*key)
                         {
-                            pauseMenu.GoNextOption();
-                            break;
-                        }
-                        case Key::ArrowUp:
-                        {
-                            pauseMenu.GoPrevOption();
-                            break;
-                        }
-                        case Key::Enter:
-                        {
-                            MenuOption option = pauseMenu.ConfirmOption();
-                            switch(option)
-                            {
-                                case MenuOption::Resume:
+                            case Key::ArrowLeft:
                                 {
-                                    gameState = GameState::Running;
+                                    board.TryMoveLeft();
                                     break;
                                 }
-                                case MenuOption::Restart:
+                            case Key::ArrowRight:
                                 {
+                                    board.TryMoveRight();
                                     break;
                                 }
-                                case MenuOption::Quit:
+                            case Key::ArrowDown:
+                                {
+                                    // TODO: add soft drop mechanic
+                                    break;
+                                }
+                            case Key::A:
+                                {
+                                    board.TryRotateCounterClockwise();
+                                    break;
+                                }
+                            case Key::D:
+                                {
+                                    board.TryRotateClockwise();
+                                    break;
+                                }
+                            case Key::Escape:
+                                {
+                                    gameState = GameState::Paused;
+                                    break;
+                                }
+                            case Key::P:
+                                {
+                                    gameState = GameState::Paused;
+                                    break;
+                                }
+                            case Key::Q:
                                 {
                                     gameState = GameState::Quit;
                                     break;
                                 }
-                            }
-                            break;
+                            case Key::Other:
+                                {
+                                    break;
+                                }
+                            default: break;
                         }
-                        case Key::Escape:
-                        {
-                            gameState = GameState::Running;
-                            break;
-                        }
-                        default: break;
-                        case Key::Other: break;
                     }
-                }
-                terminal.Present(this->GetPausedFrame());
-                break;
-            }
-            case GameState::GameOver:
-            {
-                // TODO: make gameover menu and input
-            }
-            case GameState::Quit:
-            {
-                return;
-            }
-       }
 
-   }
+                    auto now = std::chrono::steady_clock::now();
+
+                    if(now >= nextTick)
+                    {
+                        Tick();
+                        nextTick += std::chrono::milliseconds(500);
+                    }
+                    terminal.Present(this->GetGameFrame());
+                    break;
+                }
+            case GameState::Paused:
+                {
+                    auto key = input.GetKey(16);
+                    if(key)
+                    {
+                        switch(*key)
+                        {
+                            case Key::ArrowDown:
+                                {
+                                    pauseMenu.GoNextOption();
+                                    break;
+                                }
+                            case Key::ArrowUp:
+                                {
+                                    pauseMenu.GoPrevOption();
+                                    break;
+                                }
+                            case Key::Enter:
+                                {
+                                    MenuOption option = pauseMenu.ConfirmOption();
+                                    switch(option)
+                                    {
+                                        case MenuOption::Resume:
+                                            {
+                                                gameState = GameState::Running;
+                                                break;
+                                            }
+                                        case MenuOption::Restart:
+                                            {
+                                                this->Restart();
+                                                break;
+                                            }
+                                        case MenuOption::Quit:
+                                            {
+                                                gameState = GameState::Quit;
+                                                break;
+                                            }
+                                    }
+                                    break;
+                                }
+                            case Key::Escape:
+                                {
+                                    gameState = GameState::Running;
+                                    break;
+                                }
+                            default: break;
+                            case Key::Other: break;
+                        }
+                    }
+                    terminal.Present(this->GetPausedFrame());
+                    break;
+                }
+            case GameState::GameOver:
+                {
+                    // TODO: make gameover menu and input
+                }
+            case GameState::Quit:
+                {
+                    return;
+                }
+        }
+
+    }
 }
