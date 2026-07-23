@@ -26,7 +26,7 @@ std::string GameManager::GetPausedFrame() const
 
 std::string GameManager::GetGameOverFrame() const
 {
-
+    return gameOverMenu.Render(); 
 }
 
 FigureType GameManager::GenerateNextFigure()
@@ -213,7 +213,46 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                 {
                     auto now = std::chrono::steady_clock::now();
                     if(now >= nextTick) nextTick += std::chrono::milliseconds(500);
-                    // TODO: make gameover menu and input
+
+                    auto key = input.GetKey(16);
+                    if(key)
+                    {
+                        switch(*key)
+                        {
+                            case Key::ArrowDown:
+                                {
+                                    gameOverMenu.GoNextOption();
+                                    break;
+                                }
+                            case Key::ArrowUp:
+                                {
+                                    gameOverMenu.GoPrevOption();
+                                    break;
+                                }
+                            case Key::Enter:
+                                {
+                                    GameOverMenuOption option = gameOverMenu.ConfirmOption();
+                                    switch(option)
+                                    {
+                                        case GameOverMenuOption::Restart:
+                                            {
+                                                this->Restart();
+                                                break;
+                                            }
+                                        case GameOverMenuOption::Quit:
+                                            {
+                                                gameState = GameState::Quit;
+                                                break;
+                                            }
+                                    }
+                                    break;
+                                }
+                            default: break;
+                            case Key::Other: break;
+                        }
+                    }
+                    terminal.Present(this->GetGameOverFrame());
+                    break;
                 }
             case GameState::Quit:
                 {

@@ -40,6 +40,7 @@ private:
 
     BoardClass board;
     PausedMenu pauseMenu;
+    GameOverMenu gameOverMenu;
 
     FigureType GenerateNextFigure();
     void Restart();
