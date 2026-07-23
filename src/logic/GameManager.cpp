@@ -176,20 +176,20 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                 }
                             case Key::Enter:
                                 {
-                                    MenuOption option = pauseMenu.ConfirmOption();
+                                    PausedMenuOption option = pauseMenu.ConfirmOption();
                                     switch(option)
                                     {
-                                        case MenuOption::Resume:
+                                        case PausedMenuOption::Resume:
                                             {
                                                 gameState = GameState::Running;
                                                 break;
                                             }
-                                        case MenuOption::Restart:
+                                        case PausedMenuOption::Restart:
                                             {
                                                 this->Restart();
                                                 break;
                                             }
-                                        case MenuOption::Quit:
+                                        case PausedMenuOption::Quit:
                                             {
                                                 gameState = GameState::Quit;
                                                 break;

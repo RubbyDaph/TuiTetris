@@ -1,6 +1,6 @@
 #include <string>
 
-enum class MenuOption
+enum class PausedMenuOption
 {
     Resume,
     Restart,
@@ -16,13 +16,13 @@ public:
     std::string Render() const;
     void GoNextOption();
     void GoPrevOption();
-    MenuOption ConfirmOption();
+    PausedMenuOption ConfirmOption();
 private:
 
     static constexpr int height = 10;
     static constexpr int width = 10;
 
-    MenuOption option = MenuOption::Resume;
+    PausedMenuOption option = PausedMenuOption::Resume;
 
     
 };

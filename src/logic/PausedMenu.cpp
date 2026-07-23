@@ -2,29 +2,29 @@
 
 void PausedMenu::GoNextOption()
 {
-    if(option == MenuOption::Quit)
+    if(option == PausedMenuOption::Quit)
     {
-        option = MenuOption::Resume;
+        option = PausedMenuOption::Resume;
     }
     else
     {
-        option = static_cast<MenuOption>(static_cast<int>(option) + 1);
+        option = static_cast<PausedMenuOption>(static_cast<int>(option) + 1);
     }
 }
 
 void PausedMenu::GoPrevOption()
 {
-    if(option == MenuOption::Resume)
+    if(option == PausedMenuOption::Resume)
     {
-        option = MenuOption::Quit;
+        option = PausedMenuOption::Quit;
     }
     else
     {
-        option = static_cast<MenuOption>(static_cast<int>(option) - 1);
+        option = static_cast<PausedMenuOption>(static_cast<int>(option) - 1);
     }
 }
 
-MenuOption PausedMenu::ConfirmOption()
+PausedMenuOption PausedMenu::ConfirmOption()
 {
     return option;
 }
@@ -40,21 +40,27 @@ std::string PausedMenu::Render() const
     
         for(int x = 0; x < width; x++)
         {
-            if(y == 2 && x == 2)
+            if(y == 1 && x == 3)
             {
-                result += (option == MenuOption::Resume)? "> Resume" : "  Resume";
-                x += 3;
+                result += "PAUSED";
+                x += 2;
                 continue;
             }
-            else if(y == 4 && x == 2)
+            if(y == 4 && x == 2)
             {
-                result += (option == MenuOption::Restart)? "> Restart " : "  Restart ";
-                x += 4;
+                result += (option == PausedMenuOption::Resume)? "> Resume" : "  Resume";
+                x += 3;
                 continue;
             }
             else if(y == 6 && x == 2)
             {
-                result += (option == MenuOption::Quit)? "> Quit" : "  Quit";
+                result += (option == PausedMenuOption::Restart)? "> Restart " : "  Restart ";
+                x += 4;
+                continue;
+            }
+            else if(y == 8 && x == 2)
+            {
+                result += (option == PausedMenuOption::Quit)? "> Quit" : "  Quit";
                 x += 2; 
                 continue;
             }
