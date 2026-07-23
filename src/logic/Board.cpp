@@ -1,6 +1,40 @@
 #include "Board.h"
+#include <algorithm>
 #include <iomanip>
+#include <limits>
 #include <sstream>
+#include <string_view>
+
+namespace
+{
+    void AppendWindowsSideBySide(
+        std::string& destination,
+        std::string_view left,
+        std::string_view right)
+    {
+        std::size_t leftPosition = 0;
+        std::size_t rightPosition = 0;
+
+        while(leftPosition < left.size() && rightPosition < right.size())
+        {
+            const std::size_t leftEnd = left.find('\n', leftPosition);
+            const std::size_t rightEnd = right.find('\n', rightPosition);
+
+            const std::size_t leftLength =
+                (leftEnd == std::string_view::npos ? left.size() : leftEnd) - leftPosition;
+            const std::size_t rightLength =
+                (rightEnd == std::string_view::npos ? right.size() : rightEnd) - rightPosition;
+
+            destination.append(left.substr(leftPosition, leftLength));
+            destination += "  ";
+            destination.append(right.substr(rightPosition, rightLength));
+            destination += '\n';
+
+            leftPosition = leftEnd == std::string_view::npos ? left.size() : leftEnd + 1;
+            rightPosition = rightEnd == std::string_view::npos ? right.size() : rightEnd + 1;
+        }
+    }
+}
 
 
 BoardClass::BoardClass()
@@ -76,6 +110,81 @@ std::string BoardClass::PointWindow(const unsigned int& score, const unsigned in
     return result;
 }
 
+std::string BoardClass::HoldWindow() const
+{
+    constexpr int previewWidth = 5;
+    constexpr int previewHeight = 4;
+
+    std::string result;
+    result += "┌──────────┐\n";
+
+    int offsetX = 0;
+    int offsetY = 0;
+
+    if(heldTetromino)
+    {
+        const Shape& shape = GetShape(*heldTetromino, TurnDirection::Up);
+
+        int minX = std::numeric_limits<int>::max();
+        int maxX = std::numeric_limits<int>::min();
+        int minY = std::numeric_limits<int>::max();
+        int maxY = std::numeric_limits<int>::min();
+
+        for(const Point& block : shape)
+        {
+            minX = std::min(minX, block.x);
+            maxX = std::max(maxX, block.x);
+            minY = std::min(minY, block.y);
+            maxY = std::max(maxY, block.y);
+        }
+
+        const int shapeWidth = maxX - minX + 1;
+        const int shapeHeight = maxY - minY + 1;
+        offsetX = (previewWidth - shapeWidth) / 2 - minX;
+        offsetY = (previewHeight - shapeHeight) / 2 - minY;
+    }
+
+    for(int y = 0; y < underWindowHeight; ++y)
+    {
+        result += "│";
+
+        if(y == 0)
+        {
+            result += "   HOLD   ";
+        }
+        else
+        {
+            const int previewY = y - 1;
+
+            for(int x = 0; x < previewWidth; ++x)
+            {
+                bool isHeldCell = false;
+
+                if(heldTetromino && previewY < previewHeight)
+                {
+                    const Shape& shape = GetShape(*heldTetromino, TurnDirection::Up);
+
+                    for(const Point& block : shape)
+                    {
+                        if(block.x + offsetX == x && block.y + offsetY == previewY)
+                        {
+                            isHeldCell = true;
+                            break;
+                        }
+                    }
+                }
+
+                result += isHeldCell ? GetShapeColor(*heldTetromino) : "  ";
+            }
+        }
+
+        result += "│\n";
+    }
+
+    result += "└──────────┘\n";
+    return result;
+}
+
 std::string BoardClass::Render(const unsigned int& score, const unsigned int& lines) const
 {
     std::string result;
@@ -103,7 +212,7 @@ std::string BoardClass::Render(const unsigned int& score, const unsigned int& li
         result += "│\n";
     }
     result += "└────────────────────┘\n";
-    result += PointWindow(score, lines);
+    AppendWindowsSideBySide(result, PointWindow(score, lines), HoldWindow());
 
     return result;
 }
@@ -142,6 +251,17 @@ bool BoardClass::Spawn(FigureType type)
         return true;
     }
     return false;
+}
+
+std::optional<FigureType> BoardClass::HoldCurrentTetromino()
+{
+    const FigureType currentType = activeTetromino.type;
+    const std::optional<FigureType> previouslyHeld = heldTetromino;
+
+    heldTetromino = currentType;
+    hasActiveTetromino = false;
+
+    return previouslyHeld;
 }
 
 void BoardClass::LockActiveTetromino()
@@ -224,6 +344,9 @@ BoardStepResult BoardClass::TryMoveDown()
 
 bool BoardClass::Reset(FigureType type)
 {
+    heldTetromino.reset();
+    hasActiveTetromino = false;
+
     for(int row = 0; row < this->height; row++)
     {
         for(int col = 0; col < this->width; col++)

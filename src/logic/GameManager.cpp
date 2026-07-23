@@ -48,6 +48,10 @@ void GameManager::HandleStepResult(const BoardStepResult& result)
     {
         gameState = GameState::GameOver;
     }
+    else
+    {
+        holdAvailable = true;
+    }
 }
 
 void GameManager::Tick() 
@@ -62,6 +66,7 @@ void GameManager::Restart()
 {
     score = 0;
     lineCount = 0;
+    holdAvailable = true;
     board.Reset(this->GenerateNextFigure());
     gameState = GameState::Running;
 }
@@ -122,7 +127,25 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                 }
                             case Key::S:
                                 {
-                                    // TODO: for hold, in the future
+                                    if(!holdAvailable)
+                                    {
+                                        break;
+                                    }
+
+                                    const std::optional<FigureType> previouslyHeld =
+                                        board.HoldCurrentTetromino();
+                                    const FigureType nextType =
+                                        previouslyHeld ? *previouslyHeld : GenerateNextFigure();
+
+                                    holdAvailable = false;
+
+                                    if(!board.Spawn(nextType))
+                                    {
+                                        gameState = GameState::GameOver;
+                                    }
+
+                                    nextTick = std::chrono::steady_clock::now()
+                                             + std::chrono::milliseconds(500);
 
                                     break;
                                 }

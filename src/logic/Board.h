@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tetromino.h"
+#include <optional>
 
 enum class StepResult
 {
@@ -41,6 +42,7 @@ public:
     SideMoveResult TryMoveRight();
     RotationMoveResult TryRotateClockwise();
     RotationMoveResult TryRotateCounterClockwise();
+    std::optional<FigureType> HoldCurrentTetromino();
     bool Spawn(FigureType type);
     bool Reset(FigureType type);
 private:
@@ -55,6 +57,7 @@ private:
     bool hasActiveTetromino = true;
 
     Tetromino activeTetromino;
+    std::optional<FigureType> heldTetromino;
 
     int field[height][width]{};
 
