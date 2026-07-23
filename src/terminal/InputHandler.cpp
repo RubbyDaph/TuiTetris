@@ -29,6 +29,12 @@ std::optional<Key> InputHandler::GetKey(int timeoutMs)
 
     if(byte == 'd' || byte == 'D') return Key::D;
 
+    if(byte == 'q' || byte == 'Q') return Key::Q;
+
+    if(byte == ' ') return Key::Space;
+
+    if(byte == 's' || byte == 'S') return Key::S;
+
     if(byte == '\n' || byte == '\r') return Key::Enter;
 
     if(byte != '\x1b') return Key::Other;

@@ -138,6 +138,16 @@ int BoardClass::ClearLines()
     return clearedLines;
 }
 
+BoardStepResult BoardClass::TryHardDrop()
+{
+    BoardStepResult result;
+    while(true)
+    {
+       result = TryMoveDown();
+       if(result.stepResult == StepResult::Locked) return result;
+    }
+}
+
 BoardStepResult BoardClass::TryMoveDown() 
 {
     Tetromino temp = activeTetromino;

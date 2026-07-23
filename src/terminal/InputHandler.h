@@ -17,6 +17,8 @@ enum class Key
     P,
     Q,
     Enter,
+    S,
+    Space,
     Other
 };
 

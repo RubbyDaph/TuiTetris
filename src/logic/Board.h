@@ -35,6 +35,7 @@ public:
     ~BoardClass() = default;
 
     std::string Render() const;
+    BoardStepResult TryHardDrop();
     BoardStepResult TryMoveDown();
     SideMoveResult TryMoveLeft();
     SideMoveResult TryMoveRight();

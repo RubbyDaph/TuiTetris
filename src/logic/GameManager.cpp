@@ -36,22 +36,26 @@ FigureType GameManager::GenerateNextFigure()
     return static_cast<FigureType>(value);
 }
 
+void GameManager::HandleStepResult(const BoardStepResult& result)
+{
+    if(result.stepResult == StepResult::Moved) return;
+
+    lineCount += result.clearedLines;
+    score += result.clearedLines * (int)ScoreValue::ClearedLine;
+    score += (int)ScoreValue::PlacedBlock;
+
+    if(!board.Spawn(GenerateNextFigure()))
+    {
+        gameState = GameState::GameOver;
+    }
+}
+
 void GameManager::Tick() 
 {
     if(gameState != GameState::Running) return;
 
-    BoardStepResult boardStepResult = board.TryMoveDown();
-
-    if(boardStepResult.stepResult == StepResult::Locked)
-    {
-        lineCount += boardStepResult.clearedLines;
-        score += boardStepResult.clearedLines * (int)ScoreValue::ClearedLine;
-        score += (int)ScoreValue::PlacedBlock;
-        if(!board.Spawn(this->GenerateNextFigure()))
-        {
-            gameState = GameState::GameOver;
-        }
-    }
+    BoardStepResult result = board.TryMoveDown();
+    HandleStepResult(result);
 }
 
 void GameManager::Restart()
@@ -88,7 +92,7 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                 }
                             case Key::ArrowDown:
                                 {
-                                    // TODO: add soft drop mechanic
+                                    HandleStepResult(board.TryMoveDown());
                                     break;
                                 }
                             case Key::A:
@@ -116,6 +120,18 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                     gameState = GameState::Quit;
                                     break;
                                 }
+                            case Key::S:
+                                {
+                                    // TODO: for hold, in the future
+
+                                    break;
+                                }
+                            case Key::Space:
+                                {
+                                    // TODO: hard drop
+                                    HandleStepResult(board.TryHardDrop());
+                                    break;
+                                }
                             case Key::Other:
                                 {
                                     break;
@@ -136,6 +152,8 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                 }
             case GameState::Paused:
                 {
+                    auto now = std::chrono::steady_clock::now();
+                    if(now >= nextTick) nextTick += std::chrono::milliseconds(500);
                     auto key = input.GetKey(16);
                     if(key)
                     {
@@ -149,6 +167,11 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                             case Key::ArrowUp:
                                 {
                                     pauseMenu.GoPrevOption();
+                                    break;
+                                }
+                            case Key::Q:
+                                {
+                                    gameState = GameState::Quit;
                                     break;
                                 }
                             case Key::Enter:
@@ -188,6 +211,8 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                 }
             case GameState::GameOver:
                 {
+                    auto now = std::chrono::steady_clock::now();
+                    if(now >= nextTick) nextTick += std::chrono::milliseconds(500);
                     // TODO: make gameover menu and input
                 }
             case GameState::Quit:

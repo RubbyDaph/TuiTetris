@@ -33,7 +33,6 @@ public:
     std::string GetGameFrame() const;
     std::string GetPausedFrame() const;
     std::string GetGameOverFrame() const;
-    void Tick();
     void Run(Terminal& terminal, InputHandler& input);
 private:
     std::mt19937 generator;
@@ -44,6 +43,8 @@ private:
 
     FigureType GenerateNextFigure();
     void Restart();
+    void Tick();
+    void HandleStepResult(const BoardStepResult& result);
 
     GameState gameState = GameState::Paused;
     unsigned int score{0};
