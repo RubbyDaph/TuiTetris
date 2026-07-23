@@ -50,5 +50,4 @@ private:
     GameState gameState = GameState::Paused;
     bool holdAvailable{true};
     unsigned int score{0};
-    unsigned int lineCount{0};
 };

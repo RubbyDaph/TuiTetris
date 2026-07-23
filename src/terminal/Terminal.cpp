@@ -77,8 +77,8 @@ void Terminal::Present(std::string_view frame)
 {
     std::string output;
     output += MOVE_CURSOR_TO_00;
-    output += frame;
     output += CLEAR_FROM_CURSOR;
+    output += frame;
 
     WriteAll(output);
 }

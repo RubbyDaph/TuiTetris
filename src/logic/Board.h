@@ -35,7 +35,7 @@ public:
     BoardClass();
     ~BoardClass() = default;
 
-    std::string Render(const unsigned int& score, const unsigned int& lines) const;
+    std::string Render(unsigned int score) const;
     BoardStepResult TryHardDrop();
     BoardStepResult TryMoveDown();
     SideMoveResult TryMoveLeft();
@@ -70,6 +70,6 @@ private:
     bool CanTurn(const std::array<Point, 4>& tests, Tetromino& candidate);
     bool I_WallKickTests(TurnDirection nextDirection, Tetromino& candidate);
     bool Other_WallKickTests(TurnDirection nextDirection, Tetromino& candidate);
-    std::string PointWindow(const unsigned int& score, const unsigned int& lines) const;
+    std::string ScoreWindow(unsigned int score) const;
     std::string HoldWindow() const;
 };

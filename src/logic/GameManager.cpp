@@ -16,7 +16,7 @@ GameManager::~GameManager()
 
 std::string GameManager::GetGameFrame()  const
 {
-    return board.Render(score, lineCount);
+    return board.Render(score);
 }
 
 std::string GameManager::GetPausedFrame() const
@@ -40,7 +40,6 @@ void GameManager::HandleStepResult(const BoardStepResult& result)
 {
     if(result.stepResult == StepResult::Moved) return;
 
-    lineCount += result.clearedLines;
     score += result.clearedLines * (int)ScoreValue::ClearedLine;
     score += (int)ScoreValue::PlacedBlock;
 
@@ -65,7 +64,6 @@ void GameManager::Tick()
 void GameManager::Restart()
 {
     score = 0;
-    lineCount = 0;
     holdAvailable = true;
     board.Reset(this->GenerateNextFigure());
     gameState = GameState::Running;

@@ -1,37 +1,42 @@
 #include "Board.h"
 #include <algorithm>
-#include <iomanip>
 #include <limits>
-#include <sstream>
 #include <string_view>
 
 namespace
 {
-    void AppendWindowsSideBySide(
+    void AppendSidebar(
         std::string& destination,
-        std::string_view left,
-        std::string_view right)
+        std::string_view board,
+        std::string_view sidebar)
     {
-        std::size_t leftPosition = 0;
-        std::size_t rightPosition = 0;
+        std::size_t boardPosition = 0;
+        std::size_t sidebarPosition = 0;
 
-        while(leftPosition < left.size() && rightPosition < right.size())
+        while(boardPosition < board.size())
         {
-            const std::size_t leftEnd = left.find('\n', leftPosition);
-            const std::size_t rightEnd = right.find('\n', rightPosition);
+            const std::size_t boardEnd = board.find('\n', boardPosition);
+            const std::size_t boardLength =
+                (boardEnd == std::string_view::npos ? board.size() : boardEnd) - boardPosition;
 
-            const std::size_t leftLength =
-                (leftEnd == std::string_view::npos ? left.size() : leftEnd) - leftPosition;
-            const std::size_t rightLength =
-                (rightEnd == std::string_view::npos ? right.size() : rightEnd) - rightPosition;
+            destination.append(board.substr(boardPosition, boardLength));
 
-            destination.append(left.substr(leftPosition, leftLength));
-            destination += "  ";
-            destination.append(right.substr(rightPosition, rightLength));
+            if(sidebarPosition < sidebar.size())
+            {
+                const std::size_t sidebarEnd = sidebar.find('\n', sidebarPosition);
+                const std::size_t sidebarLength =
+                    (sidebarEnd == std::string_view::npos ? sidebar.size() : sidebarEnd)
+                    - sidebarPosition;
+
+                destination += "  ";
+                destination.append(sidebar.substr(sidebarPosition, sidebarLength));
+                sidebarPosition =
+                    sidebarEnd == std::string_view::npos ? sidebar.size() : sidebarEnd + 1;
+            }
+
             destination += '\n';
 
-            leftPosition = leftEnd == std::string_view::npos ? left.size() : leftEnd + 1;
-            rightPosition = rightEnd == std::string_view::npos ? right.size() : rightEnd + 1;
+            boardPosition = boardEnd == std::string_view::npos ? board.size() : boardEnd + 1;
         }
     }
 }
@@ -58,53 +63,17 @@ bool BoardClass::IsActiveTetrominoCell(int x, int y) const
 }
 
 
-std::string BoardClass::PointWindow(const unsigned int& score, const unsigned int& lines) const
+std::string BoardClass::ScoreWindow(unsigned int score) const
 {
     std::string result;
-    std::string scoreText;
-
-    if(score >= 1000)
-    {
-        std::ostringstream formattedScore;
-        formattedScore << std::fixed << std::setprecision(1)
-                       << static_cast<double>(score) / 1000.0
-                       << " K";
-        scoreText = formattedScore.str();
-    }
-    else
-    {
-        scoreText = std::to_string(score);
-    }
-
-    const std::string linesText = std::to_string(lines);
+    const std::string scoreText = std::to_string(score);
+    const std::size_t leftPadding = (width - scoreText.size()) / 2;
+    const std::size_t rightPadding = width - scoreText.size() - leftPadding;
 
     result += "┌──────────┐\n";
-
-    for(int y = 0; y < underWindowHeight; ++y)
-    {
-        result += "│";
-
-        for(int x = 0; x < width; ++x)
-        {
-            if(y == 2 && x == 1)
-            {
-                result += scoreText;
-                x += static_cast<int>(scoreText.size()) - 1;
-            }
-            else if(y == 4 && x == 1)
-            {
-                result += linesText;
-                x += static_cast<int>(linesText.size()) - 1;
-            }
-            else
-            {
-                result += ' ';
-            }
-        }
-
-        result += "│\n";
-    }
-
+    result += "│  SCORE   │\n";
+    result += "│" + std::string(leftPadding, ' ') + scoreText
+           + std::string(rightPadding, ' ') + "│\n";
     result += "└──────────┘\n";
 
     return result;
@@ -185,34 +154,40 @@ std::string BoardClass::HoldWindow() const
     return result;
 }
 
-std::string BoardClass::Render(const unsigned int& score, const unsigned int& lines) const
+std::string BoardClass::Render(unsigned int score) const
 {
-    std::string result;
+    std::string boardWindow;
 
-    result += "┌────────────────────┐\n";
+    boardWindow += "┌────────────────────┐\n";
     for(int y = 0; y < height; y++)
     {
-        result += "│";
+        boardWindow += "│";
 
         for(int x = 0; x < width; x++)
         {
             if (IsActiveTetrominoCell(x , y)) 
             {
-                result += GetShapeColor(activeTetromino.type); 
+                boardWindow += GetShapeColor(activeTetromino.type);
             }
             else if(field[y][x] == 1)
             {
-                result += GetLockedColor();
+                boardWindow += GetLockedColor();
             }
             else 
             {
-                result += "  ";
+                boardWindow += "  ";
             }
         }
-        result += "│\n";
+        boardWindow += "│\n";
     }
-    result += "└────────────────────┘\n";
-    AppendWindowsSideBySide(result, PointWindow(score, lines), HoldWindow());
+    boardWindow += "└────────────────────┘\n";
+
+    std::string sidebar = ScoreWindow(score);
+    sidebar += '\n';
+    sidebar += HoldWindow();
+
+    std::string result;
+    AppendSidebar(result, boardWindow, sidebar);
 
     return result;
 }
