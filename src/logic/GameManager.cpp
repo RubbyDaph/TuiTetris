@@ -16,7 +16,7 @@ GameManager::~GameManager()
 
 std::string GameManager::GetGameFrame()  const
 {
-    return board.Render();
+    return board.Render(score, lineCount);
 }
 
 std::string GameManager::GetPausedFrame() const
@@ -128,7 +128,6 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                 }
                             case Key::Space:
                                 {
-                                    // TODO: hard drop
                                     HandleStepResult(board.TryHardDrop());
                                     break;
                                 }

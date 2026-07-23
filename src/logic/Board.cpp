@@ -1,4 +1,6 @@
 #include "Board.h"
+#include <iomanip>
+#include <sstream>
 
 
 BoardClass::BoardClass()
@@ -21,7 +23,60 @@ bool BoardClass::IsActiveTetrominoCell(int x, int y) const
     return false;
 }
 
-std::string BoardClass::Render() const
+
+std::string BoardClass::PointWindow(const unsigned int& score, const unsigned int& lines) const
+{
+    std::string result;
+    std::string scoreText;
+
+    if(score >= 1000)
+    {
+        std::ostringstream formattedScore;
+        formattedScore << std::fixed << std::setprecision(1)
+                       << static_cast<double>(score) / 1000.0
+                       << " K";
+        scoreText = formattedScore.str();
+    }
+    else
+    {
+        scoreText = std::to_string(score);
+    }
+
+    const std::string linesText = std::to_string(lines);
+
+    result += "┌──────────┐\n";
+
+    for(int y = 0; y < underWindowHeight; ++y)
+    {
+        result += "│";
+
+        for(int x = 0; x < width; ++x)
+        {
+            if(y == 2 && x == 1)
+            {
+                result += scoreText;
+                x += static_cast<int>(scoreText.size()) - 1;
+            }
+            else if(y == 4 && x == 1)
+            {
+                result += linesText;
+                x += static_cast<int>(linesText.size()) - 1;
+            }
+            else
+            {
+                result += ' ';
+            }
+        }
+
+        result += "│\n";
+    }
+
+    result += "└──────────┘\n";
+
+    return result;
+}
+
+std::string BoardClass::Render(const unsigned int& score, const unsigned int& lines) const
 {
     std::string result;
 
@@ -48,6 +103,7 @@ std::string BoardClass::Render() const
         result += "│\n";
     }
     result += "└────────────────────┘\n";
+    result += PointWindow(score, lines);
 
     return result;
 }
