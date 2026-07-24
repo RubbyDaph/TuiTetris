@@ -6,7 +6,8 @@
 enum class StepResult
 {
     Moved,
-    Locked
+    Locked,
+    Blocked
 };
 
 struct BoardStepResult
@@ -15,11 +16,6 @@ struct BoardStepResult
     StepResult stepResult;
 };
 
-enum class SideMoveResult
-{
-    Moved,
-    Blocked
-};
 
 enum class RotationMoveResult
 {
@@ -38,13 +34,15 @@ public:
     std::string Render(unsigned int score, const FigureType& next) const;
     BoardStepResult TryHardDrop();
     BoardStepResult TryMoveDown();
-    SideMoveResult TryMoveLeft();
-    SideMoveResult TryMoveRight();
+    StepResult TryMoveLeft();
+    StepResult TryMoveRight();
     RotationMoveResult TryRotateClockwise();
     RotationMoveResult TryRotateCounterClockwise();
     std::optional<FigureType> HoldCurrentTetromino();
     bool Spawn(FigureType type);
     bool Reset(FigureType type);
+    std::optional<BoardStepResult> TryLockGroundedTetromino();
+    bool IsGrounded() const;
 private:
     
 

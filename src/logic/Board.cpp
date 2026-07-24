@@ -361,30 +361,31 @@ int BoardClass::ClearLines()
 
 BoardStepResult BoardClass::TryHardDrop()
 {
-    BoardStepResult result;
-    while(true)
+    while(TryMoveDown().stepResult == StepResult::Moved)
     {
-       result = TryMoveDown();
-       if(result.stepResult == StepResult::Locked) return result;
     }
+
+    std::optional<BoardStepResult> result = TryLockGroundedTetromino();
+
+    if(result) return *result;
+
+    return BoardStepResult{0, StepResult::Blocked};
 }
 
 BoardStepResult BoardClass::TryMoveDown() 
 {
+    if(!this->hasActiveTetromino) return BoardStepResult{0, StepResult::Blocked};
     Tetromino temp = activeTetromino;
     temp.position.y++;
     
-    if(CanPlace(temp))
+    if(!CanPlace(temp))
     {
-        activeTetromino.position.y++;
-        return BoardStepResult{0 , StepResult::Moved};
+        return BoardStepResult{0 , StepResult::Blocked};
     }
-    else
-    {
-        this->LockActiveTetromino();
-        int clearedLines = this->ClearLines();
-        return BoardStepResult{clearedLines, StepResult::Locked};
-    }
+
+    activeTetromino = temp;
+
+    return BoardStepResult{0, StepResult::Moved};
 }
 
 bool BoardClass::Reset(FigureType type)
@@ -403,7 +404,7 @@ bool BoardClass::Reset(FigureType type)
     return this->Spawn(type);
 }
 
-SideMoveResult BoardClass::TryMoveLeft()
+StepResult BoardClass::TryMoveLeft()
 {
     Tetromino candidate = activeTetromino;
     candidate.position.x--;
@@ -411,15 +412,15 @@ SideMoveResult BoardClass::TryMoveLeft()
     if(CanPlace(candidate))
     {
         activeTetromino.position.x--;
-        return SideMoveResult::Moved;
+        return StepResult::Moved;
     }
     else
     {
-        return SideMoveResult::Blocked;
+        return StepResult::Blocked;
     }
 }
 
-SideMoveResult BoardClass::TryMoveRight()
+StepResult BoardClass::TryMoveRight()
 {
     Tetromino candidate = activeTetromino;
     candidate.position.x++;
@@ -427,11 +428,11 @@ SideMoveResult BoardClass::TryMoveRight()
     if(CanPlace(candidate))
     {
         activeTetromino.position.x++;
-        return SideMoveResult::Moved;
+        return StepResult::Moved;
     }
     else
     {
-        return SideMoveResult::Blocked;
+        return StepResult::Blocked;
     }
 }
 
@@ -731,4 +732,25 @@ RotationMoveResult BoardClass::TryRotateCounterClockwise()
         return RotationMoveResult::Blocked;
     }
 
+}
+
+std::optional<BoardStepResult> BoardClass::TryLockGroundedTetromino()
+{
+    if(!this->hasActiveTetromino || !IsGrounded()) return std::nullopt;
+
+    LockActiveTetromino();
+
+    const int clearedLines = ClearLines();
+
+    return BoardStepResult{clearedLines, StepResult::Locked};
+}
+
+bool BoardClass::IsGrounded() const
+{
+    if(!this->hasActiveTetromino) return false;
+
+    Tetromino candidate = activeTetromino;
+    candidate.position.y++;
+
+    return !CanPlace(candidate);
 }

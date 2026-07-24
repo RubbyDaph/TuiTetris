@@ -48,7 +48,9 @@ FigureType GameManager::TakeNextFigure()
 
 void GameManager::HandleStepResult(const BoardStepResult& result)
 {
-    if(result.stepResult == StepResult::Moved) return;
+    if(result.stepResult != StepResult::Locked) return;
+
+    ResetLockState();
 
     score += result.clearedLines * (int)ScoreValue::ClearedLine;
     score += (int)ScoreValue::PlacedBlock;
@@ -63,18 +65,19 @@ void GameManager::HandleStepResult(const BoardStepResult& result)
     }
 }
 
-void GameManager::Tick() 
+void GameManager::Tick(TimePoint now)
 {
     if(gameState != GameState::Running) return;
 
-    BoardStepResult result = board.TryMoveDown();
-    HandleStepResult(result);
+    const BoardStepResult result = board.TryMoveDown();
+    HandleDownResult(result, now);
 }
 
 void GameManager::Restart()
 {
     score = 0;
     holdAvailable = true;
+    ResetLockState();
     board.Reset(this->TakeNextFigure());
     pauseMenu.Reset();
     gameOverMenu.Reset();
@@ -97,27 +100,42 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                         {
                             case Key::ArrowLeft:
                                 {
-                                    board.TryMoveLeft();
+                                    if(board.TryMoveLeft() == StepResult::Moved)
+                                    {
+                                        RefreshLockDelayAfterMove(Clock::now());
+                                    }
                                     break;
                                 }
                             case Key::ArrowRight:
                                 {
-                                    board.TryMoveRight();
+                                    if(board.TryMoveRight() == StepResult::Moved)
+                                    {
+                                        RefreshLockDelayAfterMove(Clock::now());
+                                    }
                                     break;
                                 }
                             case Key::ArrowDown:
                                 {
-                                    HandleStepResult(board.TryMoveDown());
+                                    const TimePoint now = Clock::now();
+                                    HandleDownResult(board.TryMoveDown(), now);
                                     break;
                                 }
                             case Key::A:
                                 {
-                                    board.TryRotateCounterClockwise();
+                                    if(board.TryRotateCounterClockwise()
+                                       == RotationMoveResult::Rotated)
+                                    {
+                                        RefreshLockDelayAfterMove(Clock::now());
+                                    }
                                     break;
                                 }
                             case Key::D:
                                 {
-                                    board.TryRotateClockwise();
+                                    if(board.TryRotateClockwise()
+                                       == RotationMoveResult::Rotated)
+                                    {
+                                        RefreshLockDelayAfterMove(Clock::now());
+                                    }
                                     break;
                                 }
                             case Key::Escape:
@@ -154,14 +172,18 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                         gameState = GameState::GameOver;
                                     }
 
-                                    nextTick = std::chrono::steady_clock::now()
+                                    ResetLockState();
+                                    nextTick = Clock::now()
                                              + std::chrono::milliseconds(500);
 
                                     break;
                                 }
                             case Key::Space:
                                 {
+                                    ResetLockState();
                                     HandleStepResult(board.TryHardDrop());
+                                    nextTick = Clock::now()
+                                             + std::chrono::milliseconds(500);
                                     break;
                                 }
                             case Key::Other:
@@ -172,13 +194,23 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                         }
                     }
 
-                    auto now = std::chrono::steady_clock::now();
+                    auto now = Clock::now();
 
-                    if(now >= nextTick)
+                    if(gameState == GameState::Running && now >= nextTick)
                     {
-                        Tick();
+                        Tick(now);
                         nextTick += std::chrono::milliseconds(500);
                     }
+
+                    now = Clock::now();
+
+                    if(gameState == GameState::Running
+                       && lockDeadline
+                       && now >= *lockDeadline)
+                    {
+                        TryLockGroundedTetromino();
+                    }
+
                     terminal.Present(this->GetGameFrame());
                     break;
                 }
@@ -214,11 +246,24 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                         case PausedMenuOption::Resume:
                                             {
                                                 gameState = GameState::Running;
+                                                const TimePoint now = Clock::now();
+                                                nextTick = now + std::chrono::milliseconds(500);
+
+                                                if(board.IsGrounded())
+                                                {
+                                                    lockDeadline = now + lockDelay;
+                                                }
+                                                else
+                                                {
+                                                    lockDeadline.reset();
+                                                }
                                                 break;
                                             }
                                         case PausedMenuOption::Restart:
                                             {
                                                 this->Restart();
+                                                nextTick = Clock::now()
+                                                         + std::chrono::milliseconds(500);
                                                 break;
                                             }
                                         case PausedMenuOption::Quit:
@@ -232,6 +277,17 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                             case Key::Escape:
                                 {
                                     gameState = GameState::Running;
+                                    const TimePoint now = Clock::now();
+                                    nextTick = now + std::chrono::milliseconds(500);
+
+                                    if(board.IsGrounded())
+                                    {
+                                        lockDeadline = now + lockDelay;
+                                    }
+                                    else
+                                    {
+                                        lockDeadline.reset();
+                                    }
                                     break;
                                 }
                             default: break;
@@ -269,6 +325,8 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                         case GameOverMenuOption::Restart:
                                             {
                                                 this->Restart();
+                                                nextTick = Clock::now()
+                                                         + std::chrono::milliseconds(500);
                                                 break;
                                             }
                                         case GameOverMenuOption::Quit:
@@ -293,4 +351,66 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
         }
 
     }
+}
+
+void GameManager::TryLockGroundedTetromino()
+{
+    auto result = board.TryLockGroundedTetromino();
+
+    lockDeadline.reset();
+
+    if(!result) return;
+
+    lockResetCount = 0;
+    HandleStepResult(*result);
+}
+
+
+void GameManager::HandleDownResult(const BoardStepResult& result, TimePoint now)
+{
+    if(result.stepResult == StepResult::Moved)
+    {
+        if(board.IsGrounded())
+        {
+            if(!lockDeadline) lockDeadline = now + lockDelay;
+        }
+        else
+        {
+            lockDeadline.reset();
+        }
+
+        return;
+    }
+
+    if(result.stepResult == StepResult::Blocked)
+    {
+        if(!lockDeadline) lockDeadline = now + lockDelay;
+    }
+}
+
+void GameManager::RefreshLockDelayAfterMove(TimePoint now)
+{
+    if(!board.IsGrounded())
+    {
+        lockDeadline.reset();
+        return;
+    }
+
+    if(!lockDeadline)
+    {
+        lockDeadline = now + lockDelay;
+        return;
+    }
+
+    if(lockResetCount < maxLockResets)
+    {
+        lockDeadline = now + lockDelay;
+        ++lockResetCount;
+    }
+}
+
+void GameManager::ResetLockState()
+{
+    lockDeadline.reset();
+    lockResetCount = 0;
 }

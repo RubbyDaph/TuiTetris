@@ -3,6 +3,8 @@
 #include "Board.h"
 #include "GameOverMenu.h"
 #include "PausedMenu.h"
+
+#include <optional>
 #include <iostream>
 #include <random>
 #include <chrono>
@@ -39,14 +41,28 @@ private:
     std::size_t nextFigureIndex{0};
     std::array<FigureType, 7> figureBag;
 
+    using Clock = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+
+    static constexpr auto lockDelay = std::chrono::milliseconds(1000);
+
+    static constexpr unsigned int maxLockResets = 15;
+
+    std::optional<TimePoint> lockDeadline;
+    unsigned int lockResetCount{0};
+
     BoardClass board;
     PausedMenu pauseMenu;
     GameOverMenu gameOverMenu;
 
     FigureType TakeNextFigure();
     void Restart();
-    void Tick();
+    void Tick(TimePoint now);
     void HandleStepResult(const BoardStepResult& result);
+    void TryLockGroundedTetromino();
+    void HandleDownResult(const BoardStepResult& result, TimePoint now);
+    void RefreshLockDelayAfterMove(TimePoint now);
+    void ResetLockState();
 
     GameState gameState = GameState::Paused;
     bool holdAvailable{true};
