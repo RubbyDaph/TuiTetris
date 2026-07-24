@@ -5,10 +5,7 @@
 
 namespace
 {
-    void AppendSidebar(
-        std::string& destination,
-        std::string_view board,
-        std::string_view sidebar)
+    void AppendSidebar( std::string& destination, std::string_view board, std::string_view sidebar)
     {
         std::size_t boardPosition = 0;
         std::size_t sidebarPosition = 0;

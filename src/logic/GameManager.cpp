@@ -26,7 +26,7 @@ std::string GameManager::GetPausedFrame() const
 
 std::string GameManager::GetGameOverFrame() const
 {
-    return gameOverMenu.Render(); 
+    return gameOverMenu.Render(this->score); 
 }
 
 FigureType GameManager::GenerateNextFigure()

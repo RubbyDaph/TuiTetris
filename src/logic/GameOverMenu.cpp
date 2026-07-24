@@ -12,7 +12,7 @@ void GameOverMenu::GoPrevOption()
     else option = GameOverMenuOption::Quit;
 }
 
-std::string GameOverMenu::Render() const
+std::string GameOverMenu::Render(unsigned int score) const
 {
     std::string result;
 
@@ -29,13 +29,21 @@ std::string GameOverMenu::Render() const
                 x += 4;
                 continue;
             }
-            else if(y == 4 && x == 2)
+            if(y == 3)
+            {
+                const std::string scoreText = std::to_string(score);
+                const std::size_t leftPadding = 6;
+                const std::size_t rightPadding = 20 - scoreText.size() - leftPadding - 6;
+                result += std::string(leftPadding, ' ') + "Score:"  + scoreText + std::string(rightPadding, ' ');
+                break;
+            }
+            else if(y == 5 && x == 2)
             {
                 result += (option == GameOverMenuOption::Restart)? "> Restart " : "  Restart ";
                 x += 4;
                 continue;
             }
-            else if(y == 6 && x == 2)
+            else if(y == 7 && x == 2)
             {
                 result += (option == GameOverMenuOption::Quit)? "> Quit" : "  Quit";
                 x += 2; 

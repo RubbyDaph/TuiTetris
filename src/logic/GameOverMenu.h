@@ -13,12 +13,12 @@ public:
     GameOverMenu() = default;
     ~GameOverMenu() = default;
 
-    std::string Render() const;
+    std::string Render(unsigned int score) const;
     void GoNextOption();
     void GoPrevOption();
     GameOverMenuOption ConfirmOption(){return option;};
 private:
-    static constexpr int height = 8;
+    static constexpr int height = 9;
     static constexpr int width = 10;
 
     GameOverMenuOption option = GameOverMenuOption::Restart;
