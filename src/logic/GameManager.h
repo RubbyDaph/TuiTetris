@@ -36,13 +36,14 @@ public:
     void Run(Terminal& terminal, InputHandler& input);
 private:
     std::mt19937 generator;
-    std::uniform_int_distribution<int> figureDistribution;
+    std::size_t nextFigureIndex{0};
+    std::array<FigureType, 7> figureBag;
 
     BoardClass board;
     PausedMenu pauseMenu;
     GameOverMenu gameOverMenu;
 
-    FigureType GenerateNextFigure();
+    FigureType TakeNextFigure();
     void Restart();
     void Tick();
     void HandleStepResult(const BoardStepResult& result);

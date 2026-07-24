@@ -2,9 +2,14 @@
 #include "../terminal/Terminal.h"
 #include "../terminal/InputHandler.h"
 
-GameManager::GameManager() : generator(std::random_device{}()), figureDistribution(0, 6)
+#include <algorithm>
+
+GameManager::GameManager() : generator(std::random_device{}())
 {
-    if(!board.Reset(GenerateNextFigure()))
+    using enum FigureType;
+    figureBag = {T, S, Z, J, L, O, I};
+    std::shuffle(figureBag.begin(), figureBag.end(), generator);
+    if(!board.Reset(TakeNextFigure()))
     {
         throw std::runtime_error("Figure couldn't spawn");
     }
@@ -29,11 +34,16 @@ std::string GameManager::GetGameOverFrame() const
     return gameOverMenu.Render(this->score); 
 }
 
-FigureType GameManager::GenerateNextFigure()
+FigureType GameManager::TakeNextFigure()
 {
-    const int value = figureDistribution(generator);
-
-    return static_cast<FigureType>(value);
+    FigureType type = figureBag[nextFigureIndex];
+    nextFigureIndex++;
+    if(nextFigureIndex >= figureBag.size())
+    {
+        std::shuffle(figureBag.begin(), figureBag.end(), generator);
+        nextFigureIndex = 0;
+    }
+    return type;
 }
 
 void GameManager::HandleStepResult(const BoardStepResult& result)
@@ -43,7 +53,7 @@ void GameManager::HandleStepResult(const BoardStepResult& result)
     score += result.clearedLines * (int)ScoreValue::ClearedLine;
     score += (int)ScoreValue::PlacedBlock;
 
-    if(!board.Spawn(GenerateNextFigure()))
+    if(!board.Spawn(TakeNextFigure()))
     {
         gameState = GameState::GameOver;
     }
@@ -65,7 +75,7 @@ void GameManager::Restart()
 {
     score = 0;
     holdAvailable = true;
-    board.Reset(this->GenerateNextFigure());
+    board.Reset(this->TakeNextFigure());
     gameState = GameState::Running;
 }
 
@@ -133,7 +143,7 @@ void GameManager::Run(Terminal& terminal, InputHandler& input)
                                     const std::optional<FigureType> previouslyHeld =
                                         board.HoldCurrentTetromino();
                                     const FigureType nextType =
-                                        previouslyHeld ? *previouslyHeld : GenerateNextFigure();
+                                        previouslyHeld ? *previouslyHeld : TakeNextFigure();
 
                                     holdAvailable = false;
 
