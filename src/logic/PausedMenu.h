@@ -18,6 +18,7 @@ public:
     void GoNextOption();
     void GoPrevOption();
     PausedMenuOption ConfirmOption();
+    void Reset();
 private:
 
     static constexpr int height = 10;

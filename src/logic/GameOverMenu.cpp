@@ -1,5 +1,10 @@
 #include "GameOverMenu.h"
 
+void GameOverMenu::Reset()
+{
+    option = GameOverMenuOption::Restart;
+}
+
 void GameOverMenu::GoNextOption()
 {
     if(option == GameOverMenuOption::Restart) option = GameOverMenuOption::Quit;

@@ -76,6 +76,8 @@ void GameManager::Restart()
     score = 0;
     holdAvailable = true;
     board.Reset(this->TakeNextFigure());
+    pauseMenu.Reset();
+    gameOverMenu.Reset();
     gameState = GameState::Running;
 }
 

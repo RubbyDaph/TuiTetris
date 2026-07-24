@@ -1,5 +1,10 @@
 #include "PausedMenu.h"
 
+void PausedMenu::Reset()
+{
+    option = PausedMenuOption::Resume;
+}
+
 void PausedMenu::GoNextOption()
 {
     if(option == PausedMenuOption::Quit)

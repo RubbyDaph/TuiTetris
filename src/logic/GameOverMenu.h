@@ -17,6 +17,7 @@ public:
     void GoNextOption();
     void GoPrevOption();
     GameOverMenuOption ConfirmOption(){return option;};
+    void Reset();
 private:
     static constexpr int height = 9;
     static constexpr int width = 10;
