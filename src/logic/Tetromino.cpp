@@ -3,7 +3,7 @@
 namespace 
 {
     using FigureCatalog = std::array<FigureRotations, 7>;
-    
+
     using ColorCatalog = std::array<std::string, 7>;
 
     const ColorCatalog colorCatalog
@@ -25,6 +25,9 @@ namespace
     };
 
     const std::string lockedColor =
+        "\x1b[48;2;255;255;255m  \x1b[0m"; // white
+
+    const std::string highlightColor =
         "\x1b[48;2;156;156;156m  \x1b[0m"; // grey
 
     constexpr FigureCatalog figureCatalog{
@@ -119,4 +122,9 @@ std::string GetShapeColor(FigureType type)
 std::string GetLockedColor()
 {
     return lockedColor;
+}
+
+std::string GetHighlightColor()
+{
+    return highlightColor;
 }

@@ -46,17 +46,51 @@ BoardClass::BoardClass()
 bool BoardClass::IsActiveTetrominoCell(int x, int y) const
 {
     if(!hasActiveTetromino) return false;
-    const Shape& shape = GetShape(activeTetromino.type, activeTetromino.direction);
+
+    return IsTetrominoCell(activeTetromino, x, y);
+}
+
+bool BoardClass::IsTetrominoCell(
+    const Tetromino& tetromino,
+    int x,
+    int y) const
+{
+    const Shape& shape = GetShape(tetromino.type, tetromino.direction);
 
     for(const Point& block : shape)
     {
-        const int blockX = activeTetromino.position.x + block.x;
-        const int blockY = activeTetromino.position.y + block.y;
+        const int blockX = tetromino.position.x + block.x;
+        const int blockY = tetromino.position.y + block.y;
         
         if(blockX == x && blockY == y) return true;
     }
 
     return false;
+}
+
+std::optional<Tetromino> BoardClass::CalculateGhostTetromino() const
+{
+    if(!hasActiveTetromino)
+    {
+        return std::nullopt;
+    }
+
+    Tetromino ghost = activeTetromino;
+
+    while(true)
+    {
+        Tetromino candidate = ghost;
+        candidate.position.y++;
+
+        if(!CanPlace(candidate))
+        {
+            break;
+        }
+
+        ghost = candidate;
+    }
+
+    return ghost;
 }
 
 
@@ -225,6 +259,7 @@ std::string BoardClass::HoldWindow() const
 std::string BoardClass::Render(unsigned int score, const FigureType& next) const
 {
     std::string boardWindow;
+    const std::optional<Tetromino> ghost = CalculateGhostTetromino();
 
     boardWindow += "┌────────────────────┐\n";
     for(int y = 0; y < height; y++)
@@ -240,6 +275,10 @@ std::string BoardClass::Render(unsigned int score, const FigureType& next) const
             else if(field[y][x] == 1)
             {
                 boardWindow += GetLockedColor();
+            }
+            else if(ghost && IsTetrominoCell(*ghost, x, y))
+            {
+                boardWindow += GetHighlightColor();
             }
             else 
             {

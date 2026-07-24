@@ -60,6 +60,8 @@ private:
     int field[height][width]{};
 
     bool IsActiveTetrominoCell(int x, int y ) const;
+    bool IsTetrominoCell(const Tetromino& tetromino, int x, int y) const;
+    std::optional<Tetromino> CalculateGhostTetromino() const;
     bool CanPlace(const Tetromino& candidate) const;
     void LockActiveTetromino();
     int ClearLines();

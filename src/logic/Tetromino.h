@@ -46,3 +46,5 @@ TurnDirection GetNextDirection(TurnDirection direction);
 std::string GetShapeColor(FigureType type);
 
 std::string GetLockedColor();
+
+std::string GetHighlightColor();
