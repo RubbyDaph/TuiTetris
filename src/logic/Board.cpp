@@ -1,10 +1,30 @@
 #include "Board.h"
 #include <algorithm>
+#include <iomanip>
 #include <limits>
+#include <sstream>
 #include <string_view>
 
 namespace
 {
+    std::string FormatScore(unsigned int score)
+    {
+        if(score < 100000)
+        {
+            return std::to_string(score);
+        }
+
+        const bool useMillions = score >= 1000000;
+        const double divisor = useMillions ? 1000000.0 : 1000.0;
+
+        std::ostringstream formatted;
+        formatted << std::fixed << std::setprecision(1)
+                  << static_cast<double>(score) / divisor
+                  << (useMillions ? "M" : "K");
+
+        return formatted.str();
+    }
+
     void AppendSidebar( std::string& destination, std::string_view board, std::string_view sidebar)
     {
         std::size_t boardPosition = 0;
@@ -168,7 +188,7 @@ std::string BoardClass::QueueWindow(const FigureType& nextTetromino) const
 std::string BoardClass::ScoreWindow(unsigned int score) const
 {
     std::string result;
-    const std::string scoreText = std::to_string(score);
+    const std::string scoreText = FormatScore(score);
     const std::size_t leftPadding = (width - scoreText.size()) / 2;
     const std::size_t rightPadding = width - scoreText.size() - leftPadding;
 
