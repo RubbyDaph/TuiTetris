@@ -60,6 +60,77 @@ bool BoardClass::IsActiveTetrominoCell(int x, int y) const
 }
 
 
+std::string BoardClass::QueueWindow(const FigureType& nextTetromino) const
+{
+   std::string result;
+
+   constexpr int previewWidth = 5;
+   constexpr int previewHeight = 4;
+
+   result += "┌──────────┐\n";
+
+   int offsetX = 0;
+   int offsetY = 0;
+
+   const Shape& shape = GetShape(nextTetromino, TurnDirection::Up);
+
+   int minX = std::numeric_limits<int>::max();
+   int maxX = std::numeric_limits<int>::min();
+   int minY = std::numeric_limits<int>::max();
+   int maxY = std::numeric_limits<int>::min();
+
+   for(const Point& block : shape)
+   {
+       minX = std::min(minX, block.x);
+       maxX = std::max(maxX, block.x);
+       minY = std::min(minY, block.y);
+       maxY = std::max(maxY, block.y);
+   }
+
+   const int shapeWidth = maxX - minX + 1;
+   const int shapeHeight = maxY - minY + 1;
+   offsetX = (previewWidth - shapeWidth) / 2 - minX;
+   offsetY = (previewHeight - shapeHeight) / 2 - minY;
+
+
+   for(int y = 0; y < underWindowHeight; ++y)
+   {
+       result += "│";
+
+       if(y == 0)
+       {
+           result += "   NEXT   ";
+       }
+       else
+       {
+           const int previewY = y - 1;
+
+           for(int x = 0; x < previewWidth; ++x)
+           {
+               bool isNextCell = false;
+               if(previewY < previewHeight)
+               {
+                   for(const Point& block : shape)
+                   {
+                       if(block.x + offsetX == x && block.y + offsetY == previewY)
+                       {
+                           isNextCell = true;
+                           break;
+                       }
+                   }
+               }
+
+               result += isNextCell ? GetShapeColor(nextTetromino) : "  ";
+           }
+       }
+
+       result += "│\n";
+   }
+
+   result += "└──────────┘\n";
+   return result;
+}
+
 std::string BoardClass::ScoreWindow(unsigned int score) const
 {
     std::string result;
@@ -151,7 +222,7 @@ std::string BoardClass::HoldWindow() const
     return result;
 }
 
-std::string BoardClass::Render(unsigned int score) const
+std::string BoardClass::Render(unsigned int score, const FigureType& next) const
 {
     std::string boardWindow;
 
@@ -182,6 +253,8 @@ std::string BoardClass::Render(unsigned int score) const
     std::string sidebar = ScoreWindow(score);
     sidebar += '\n';
     sidebar += HoldWindow();
+    sidebar += '\n';
+    sidebar += QueueWindow(next);
 
     std::string result;
     AppendSidebar(result, boardWindow, sidebar);

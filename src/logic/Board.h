@@ -35,7 +35,7 @@ public:
     BoardClass();
     ~BoardClass() = default;
 
-    std::string Render(unsigned int score) const;
+    std::string Render(unsigned int score, const FigureType& next) const;
     BoardStepResult TryHardDrop();
     BoardStepResult TryMoveDown();
     SideMoveResult TryMoveLeft();
@@ -72,4 +72,5 @@ private:
     bool Other_WallKickTests(TurnDirection nextDirection, Tetromino& candidate);
     std::string ScoreWindow(unsigned int score) const;
     std::string HoldWindow() const;
+    std::string QueueWindow(const FigureType& nextTetromino) const;
 };

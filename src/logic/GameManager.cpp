@@ -21,7 +21,7 @@ GameManager::~GameManager()
 
 std::string GameManager::GetGameFrame()  const
 {
-    return board.Render(score);
+    return board.Render(score, figureBag[nextFigureIndex]);
 }
 
 std::string GameManager::GetPausedFrame() const
