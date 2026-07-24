@@ -291,9 +291,9 @@ std::string BoardClass::Render(unsigned int score, const FigureType& next) const
 
     std::string sidebar = ScoreWindow(score);
     sidebar += '\n';
-    sidebar += HoldWindow();
-    sidebar += '\n';
     sidebar += QueueWindow(next);
+    sidebar += '\n';
+    sidebar += HoldWindow();
 
     std::string result;
     AppendSidebar(result, boardWindow, sidebar);
@@ -303,9 +303,6 @@ std::string BoardClass::Render(unsigned int score, const FigureType& next) const
 
 bool BoardClass::CanPlace(const Tetromino& candidate) const
 {
-    // TODO: 
-    // scale it up a bit, include case when block spawns above upper border
-    // make exception for one of the checks
     const Shape& shape = GetShape(candidate.type, candidate.direction);
 
     for(const Point& block : shape)

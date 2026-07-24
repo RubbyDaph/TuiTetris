@@ -1,4 +1,27 @@
 #include "GameOverMenu.h"
+#include <iomanip>
+#include <sstream>
+
+namespace
+{
+    std::string FormatScore(unsigned int score)
+    {
+        if(score < 100000)
+        {
+            return std::to_string(score);
+        }
+
+        const bool useMillions = score >= 1000000;
+        const double divisor = useMillions ? 1000000.0 : 1000.0;
+
+        std::ostringstream formatted;
+        formatted << std::fixed << std::setprecision(1)
+                  << static_cast<double>(score) / divisor
+                  << (useMillions ? "M" : "K");
+
+        return formatted.str();
+    }
+}
 
 void GameOverMenu::Reset()
 {
@@ -36,10 +59,14 @@ std::string GameOverMenu::Render(unsigned int score) const
             }
             if(y == 3)
             {
-                const std::string scoreText = std::to_string(score);
-                const std::size_t leftPadding = 6;
-                const std::size_t rightPadding = 20 - scoreText.size() - leftPadding - 6;
-                result += std::string(leftPadding, ' ') + "Score:"  + scoreText + std::string(rightPadding, ' ');
+                const std::string scoreText = "Score: " + FormatScore(score);
+                const std::size_t leftPadding = (20 - scoreText.size()) / 2;
+                const std::size_t rightPadding =
+                    20 - scoreText.size() - leftPadding;
+
+                result += std::string(leftPadding, ' ')
+                       + scoreText
+                       + std::string(rightPadding, ' ');
                 break;
             }
             else if(y == 5 && x == 2)
