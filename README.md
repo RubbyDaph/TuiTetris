@@ -34,6 +34,10 @@ Run the game:
 ./build/tetris
 ```
 
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
 ## Screenshots
 
 ### Gameplay
